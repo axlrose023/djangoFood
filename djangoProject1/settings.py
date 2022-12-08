@@ -66,6 +66,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.get_vendor',
+                'accounts.context_processors.get_google_api',
             ],
         },
     },
@@ -140,3 +141,5 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'sloboda282@gmail.com'
 EMAIL_HOST_PASSWORD = 'dlahyylbfysgrctd'
 EMAIL_USE_TLS = True
+
+GOOGLE_API_KEY = 'AIzaSyC4yTudrg9pTcB2kbAgrbCMBfVvbviohvu'
