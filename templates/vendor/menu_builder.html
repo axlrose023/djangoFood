@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container my-5 p-5 border rounded shadow" style="background-color: whitesmoke;">
+        <div class="row">
+            <div class="col-12 my-5 text-center">
+                <h6>Menu Categories</h6>
+                <div class="row my-2">
+                    <div class="col-6 text-right"><a href="#" class="btn btn-info"><i class="fa fa-plus"
+                                                                                      aria-hidden="true"></i> Add
+                        Food</a></div>
+                    <div class="col-6 text-left"><a href="{% url 'add_category' %}" class="btn btn-info"><i
+                            class="fa fa-plus"
+                            aria-hidden="true"></i> Add
+                        Category</a>
+                    </div>
+                </div>
+                <table class="table">
+                    <thead>
+                    {% for category in categories %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <a href="{% url 'fooditems_by_category' category.id %}"><p
+                                        class="mb-0 font-weight-bold">{{ category }}</p></a>
+                                <small class="text-muted">{{ category.description }}</small>
+                            </td>
+                            <td><a href="{% url 'edit_category' category.pk %}"
+                                   style="text-decoration: none; color: unset;"><i
+                                    class="fa fa-pencil" aria-hidden="true"></i>&nbsp;Edit
+                            </a>&nbsp;&nbsp;<a href="{% url 'delete_category' category.pk %}"
+                                               style="text-decoration: none; color: unset;"
+                                               onclick="return confirm('Are you sure you want to delete this category?')"><i
+                                    class="fa fa-trash text-danger"
+                                    aria-hidden="true"></i>&nbsp;Delete</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                    </thead>
+
+                </table>
+            </div>
+        </div>
+    </div>
+    {% for field in form %}
+        {% if field.errors %}
+            {% for error in field.errors %}
+                <li style="color: red;">{{ error }}</li>
+            {% endfor %}
+
+        {% endif %}
+    {% endfor %}
+{% endblock %}
