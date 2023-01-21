@@ -1,20 +1,36 @@
 {% extends 'base.html' %}
 {% block content %}
     <div class="container my-5 p-5 rounded shadow " style="background-color: whitesmoke;">
-        <button class="btn btn-secondary m-1" onclick="history.back()"><i class="fa fa-angle-left" aria-hidden="true"></i>&nbsp;Back
+        <button class="btn btn-secondary m-1" onclick="history.back()"><i class="fa fa-angle-left"
+                                                                          aria-hidden="true"></i>&nbsp;Back
         </button>
         <h3>Food items by category</h3>
         <p style="font-size: 1.2em;">Category: <span class="text-success text-uppercase">{{ category }}</span></p>
         {% if fooditems %}
             {% for food in fooditems %}
-                {{ forloop.counter }}
-                {{ food }}
-                {{ food.description }}
+                <div class="row">
+                    <div class="col-3">{{ forloop.counter }}</div>
+                    <div class="col-3"><img src="{{ food.image.url }}" style="width: 150px; height: 100px;" alt="">
+                    </div>
+                    <div class="col-3">{{ food.food_title }}</div>
+                    <div class="col-3">{{ food.description }}</div>
+                    {% if food.is_available %}
+                        <span class="badge badge-success">Available</span>
+                    {% else %}
+                        <span class="badge badge-danger">Not Available</span>
+
+                    {% endif %}
+                </div>
+                {#                <img src="{{ food.image.url }}" style="height: 200px;width: 300px;" alt="">#}
             {% endfor %}
         {% else %}
             <p>There are no food items</p>
             <div class="text-center">
-                <a href="#" class="btn btn-success"><i class="fa fa-plus" aria-hidden="true"></i>&nbsp; Add Food</a>
+                <a href="{% url 'add_food' %}" class="btn btn-success"><i class="fa fa-plus" aria-hidden="true"></i>&nbsp;
+                    Add Food</a>
+                <a href="{% url 'delete_food' %}" class="btn btn-success"
+                   onclick="return confirm('Are you sure to delete this?')"><i class="fa fa-plus"
+                                                                               aria-hidden="true"></i>&nbsp; Delete Food</a>
             </div>
         {% endif %}
     </div>
