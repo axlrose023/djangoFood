@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages, auth
 # Create your views here.
 from django.utils.http import urlsafe_base64_decode
+from django.utils.text import slugify
 
 from accounts.forms import UserForm
 from accounts.models import User, UserProfile
@@ -84,6 +85,8 @@ def registerVendor(request):
             user.save()
             vendor = v_form.save(commit=False)
             vendor.user = user
+            vendor_name = v_form.cleaned_data['vendor_name']
+            vendor_slug = slugify(vendor_name) + '-' + str(user.id)
             user_profile = UserProfile.objects.get(user=user)
             vendor.user_profile = user_profile
             vendor.save()
