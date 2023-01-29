@@ -1,5 +1,7 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Prefetch
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import GEOSGeometry
+from django.db.models import Prefetch, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 
@@ -8,6 +10,7 @@ from marketplace.context_processors import get_cart, get_cart_amount
 from marketplace.models import Cart
 from menu.models import Category, FoodItem
 from vendor.models import Vendor
+from django.contrib.gis.measure import D
 
 
 def marketplace(request):
@@ -46,11 +49,13 @@ def add_to_cart(request, food_id):
                     chkCart.quantity += 1
                     chkCart.save()
                     return JsonResponse({'status': 'Success', 'message': 'Increased the cart quantity',
-                                         'cart_counter': get_cart(request), 'qty': chkCart.quantity, 'cart_amount':get_cart_amount(request)})
+                                         'cart_counter': get_cart(request), 'qty': chkCart.quantity,
+                                         'cart_amount': get_cart_amount(request)})
                 except:
                     chkCart = Cart.objects.create(user=request.user, fooditem=fooditem, quantity=1)
                     return JsonResponse({'status': 'Success', 'message': 'Added the food to the cart',
-                                         'cart_counter': get_cart(request), 'qty': chkCart.quantity, 'cart_amount':get_cart_amount(request)})
+                                         'cart_counter': get_cart(request), 'qty': chkCart.quantity,
+                                         'cart_amount': get_cart_amount(request)})
 
             except:
                 return JsonResponse({'status': 'Failed', 'message': 'This food doesnt exist!'})
@@ -85,6 +90,7 @@ def decrease_cart(request, food_id):
     else:
         return JsonResponse({'status': 'login_required', 'message': 'Please login to continue'})
 
+
 @login_required(login_url='login')
 def cart(request):
     cart_items = Cart.objects.filter(user=request.user).order_by('created_at')
@@ -109,3 +115,30 @@ def delete_cart(request, cart_id):
 
         else:
             return JsonResponse({'status': 'Failed', 'message': 'Invalid request'})
+
+
+def search(request):
+    address = request.GET.get('address')
+    latitude = request.GET.get('lat')
+    longitude = request.GET.get('lng')
+    radius = request.GET.get('radius')
+    keyword = request.GET['keyword']
+    fetch_vendors_by_fooditems = FoodItem.objects.filter(food_title__icontains=keyword, is_available=True).values_list(
+        'vendor', flat=True)
+    vendors = Vendor.objects.filter(
+        Q(id__in=fetch_vendors_by_fooditems) | Q(vendor_name__icontains=keyword, is_approved=True,
+                                                 user__is_active=True))
+    if latitude and longitude and radius:
+        pnt = GEOSGeometry('POINT(%s %s)' % (longitude, latitude))
+        vendors = Vendor.objects.filter(
+            Q(id__in=fetch_vendors_by_fooditems) | Q(vendor_name__icontains=keyword, is_approved=True,
+                                                     user__is_active=True),
+            user_profile__location_distance_lte=(pnt, D(km=radius))).annotate(distance=Distance("user_profile__location")).order_by("distance")
+        for v in vendors:
+            v.kms = v.distance.km
+    vendor_count = vendors.count()
+    context = {
+        'vendors': vendors,
+        'vendor_count': vendor_count,
+    }
+    return render(request, 'marketplace/listings.html', context)
