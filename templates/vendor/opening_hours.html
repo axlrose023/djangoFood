@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+    {% load static %}
+
+    <div class="container my-5 p-5 border rounded shadow" style="background-color: whitesmoke;">
+        <div class="row">
+            <div class="col-12 my-5">
+                <h6>Opening Hours</h6>
+                <hr>
+                <table class="table table-striped opening_hours" style="width: 500px; border: none !important;">
+                    <tbody>
+                    {% for hour in opening_hours %}
+                        <tr>
+                            <td><b>{{ hour }}</b></td>
+                            <td>{% if hour.is_closed %}Closed{% else %}{{ hour.from_hour }} -
+                                {{ hour.to_hour }}{% endif %}</td>
+                            <td><a href="#">Remove</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <br>
+                <form id="opening_hours">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-2">
+                            {{ form.day }}
+                        </div>
+                        <div class="col-md-2">
+                            {{ form.from_hour }}
+                        </div>
+                        <div class="col-md-2">
+                            {{ form.to_hour }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.is_closed }} Set as closed
+                        </div>
+                        <div class="col-md-2">
+                            <input type="hidden" value="{% url 'add_opening_hours' %}" id="add_hour_url">
+                            <button class="btn btn-primary add_hour" id="add_hour">Add Hours</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

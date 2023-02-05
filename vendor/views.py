@@ -1,5 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test, login_required
+from django.db import IntegrityError
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 
 # Create your views here.
@@ -10,8 +12,8 @@ from accounts.models import UserProfile
 from accounts.views import check_role_vendor
 from menu.forms import CategoryForm, FoodItemForm
 from menu.models import Category, FoodItem
-from vendor.forms import VendorForm
-from vendor.models import Vendor
+from vendor.forms import VendorForm, OpeningHourForm
+from vendor.models import Vendor, OpeningHour
 
 
 def get_vendor(request):
@@ -173,3 +175,36 @@ def delete_food(request, pk=None):
     food.delete()
     messages.success(request, 'Food deleted successfully!')
     return redirect('fooditems_by_category', food.category.id)
+
+
+def opening_hours(request):
+    opening_hours = OpeningHour.objects.filter(vendor=get_vendor(request))
+    form = OpeningHourForm()
+    context = {
+        'form': form,
+        'opening_hours': opening_hours
+    }
+    return render(request, 'vendor/opening_hours.html', context)
+
+
+def add_opening_hours(request):
+    # if request.user.is_authenticated:
+    #     if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.method == 'POST':
+    #         form = OpeningHourForm(request.POST)
+    #         try:
+    #             if form.is_valid():
+    #                 hour = form.save(commit=False)
+    #                 if hour:
+    #                     day = OpeningHour.objects.get(id=hour.id)
+    #                     if day.is_closed:
+    #                         response = {'status': 'success', 'id': hour.id, 'day': day.get_day_display(),
+    #                                     'is_closed': 'Closed'}
+    #                     else:
+    #                         response = {'status': 'success', 'id': hour.id, 'day': day.get_day_display(),
+    #                                     'from_hour': hour.from_hour, 'to_hour': }
+    #                 return JsonResponse(response)
+    #         except IntegrityError as e:
+    #         response = {'status': 'failed'}
+    #         return JsonResponse(response)
+    # else:
+        return HttpResponse('Invalid request')

@@ -42,7 +42,7 @@ $(document).ready(function () {
                     //subtotal, tax and grand total
                     applyCartAmount(
                         response.cart_amount['subtotal'],
-                        response.cart_amount['tax'],
+                        response.cart_amount['tax_dict'],
                         response.cart_amount['grand_total'],
                     )
                 }
@@ -76,7 +76,7 @@ $(document).ready(function () {
                     removeCartItem(response.qty, cart_id);
                     applyCartAmount(
                         response.cart_amount['subtotal'],
-                        response.cart_amount['tax'],
+                        response.cart_amount['tax_dict'],
                         response.cart_amount['grand_total'],
                     )
                 }
@@ -118,12 +118,57 @@ $(document).ready(function () {
         }
     }
 
-    function applyCartAmount(subtotal, tax, grand_total) {
+    function applyCartAmount(subtotal, tax_dict, grand_total) {
         if (window.location.pathname == '/cart/') {
             $('#subtotal').html(subtotal)
-            $('#tax').html(tax)
             $('#total').html(grand_total)
+            console.log(tax_dict)
+            for (key1 in tax_dict) {
+                console.log(tax_dict[key1])
+                for (key2 in tax_dict[key1]) {
+                    console.log(tax_dict[key1][key2])
+                    $('#tax-' + key1).html(tax_dict[key1][key2])
+                }
+            }
         }
 
     }
+
+    $('#add_hour').on('click', function (e) {
+        e.preventDefault();
+        var day = document.getElementById('id_day')
+        var from_hour = document.getElementById('id_from_hour').value
+        var to_hour = document.getElementById('id_to_hour').value
+        var is_closed = document.getElementById('id_is_closed').checked
+        var csrf_token = $('input[name=csrfmiddlewaretoken]').val()
+        var url = document.getElementById('add_hour_url').value
+        console.log(day, from_hour, to_hour, is_closed, csrf_token, url);
+        if (is_closed) {
+            is_closed = 'True'
+            condition = "day != ''"
+
+        } else {
+            is_closed = 'False'
+            condition = "day != '' && from_hour != '' && to_hour != ''"
+        }
+        if (eval(condition)) {
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: {
+                    'day': day,
+                    'from_hour': from_hour,
+                    'to_hour': to_hour,
+                    'is_closed': is_closed,
+                    'csrfmiddlewaretoken': csrf_token,
+                },
+                success: function (response) {
+                    console.log(response)
+                }
+            })
+            console.log('add the entry')
+        } else {
+            swal("Please fill the fields", '', 'info')
+        }
+    })
 });
