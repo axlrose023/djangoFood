@@ -172,3 +172,4 @@ $(document).ready(function () {
         }
     })
 });
+// Render the PayPal button into #paypal-button-container

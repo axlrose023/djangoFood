@@ -1,16 +1,18 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.measure import D
 from django.db.models import Prefetch, Q
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
 
 # Create your views here.
+from accounts.models import UserProfile
 from marketplace.context_processors import get_cart, get_cart_amount
 from marketplace.models import Cart
 from menu.models import Category, FoodItem
+from orders.forms import OrderForm
 from vendor.models import Vendor
-from django.contrib.gis.measure import D
 
 
 def marketplace(request):
@@ -133,7 +135,8 @@ def search(request):
         vendors = Vendor.objects.filter(
             Q(id__in=fetch_vendors_by_fooditems) | Q(vendor_name__icontains=keyword, is_approved=True,
                                                      user__is_active=True),
-            user_profile__location_distance_lte=(pnt, D(km=radius))).annotate(distance=Distance("user_profile__location")).order_by("distance")
+            user_profile__location_distance_lte=(pnt, D(km=radius))).annotate(
+            distance=Distance("user_profile__location")).order_by("distance")
         for v in vendors:
             v.kms = v.distance.km
     vendor_count = vendors.count()
@@ -142,3 +145,21 @@ def search(request):
         'vendor_count': vendor_count,
     }
     return render(request, 'marketplace/listings.html', context)
+
+
+@login_required(login_url='login')
+def checkout(request):
+    cart_items = Cart.objects.filter(user=request.user).order_by('created_at')
+    cart_count = cart_items.count()
+    if cart_count <= 0:
+        return redirect('marketplace')
+    user_profile = UserProfile.objects.get(user=request.user)
+    default_values = {
+        'first_name': request.user.first_name,
+        'last_name': request.user.last_name,
+        'phone': request.user.phone_number,
+        'email': request.user.email,
+    }
+    form = OrderForm(initial=default_values)
+    context = {'form': form, 'cart_items': cart_items}
+    return render(request, 'marketplace/checkout.html', context)
