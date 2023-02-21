@@ -4,6 +4,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 
 from accounts.forms import UserProfileForm, UserInfoForm
 from accounts.models import UserProfile
+from orders.models import Order
 
 
 @login_required(login_url='login')
@@ -28,3 +29,13 @@ def cprofile(request):
         'profile': profile,
     }
     return render(request, 'customers/cprofile.html', context)
+
+
+def my_orders(request):
+    return render(request, 'customers/my_orders.html')
+
+
+def order_detail(request, order_number):
+    order = Order.objects.get(order_number=order_number, is_ordered=True)
+    context = {'order': order}
+    return render(request, 'customers/order_detail.html', context)

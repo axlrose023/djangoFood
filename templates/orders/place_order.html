@@ -81,7 +81,11 @@
                                                         <span id="total">{{ grand_total }}</span>
                                                     </span>
                                                 </li>
-                                                <div id="paypal-button-container"></div>
+                                                {% if order.payment_method == 'PayPal' %}
+                                                    <div id="paypal-button-container"></div>
+                                                {% else %}
+                                                    pass
+                                                {% endif %}
                                             </ul>
                                         </div>
 
